@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PacMan</title>
+</head>
+<body>
+  <canvas></canvas>
+  <img hidden id="sprite" src="./Pacman Sprite.png" alt="Pacman Sprite">
+  <style>
+    body {
+      background-color: #000;
+    }
+
+    canvas {
+      border: 6px solid #fff;
+      margin: 0 auto;
+      display: block;
+      box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.4)
+    }
+  </style>
+  <script>
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+    const $sprite = document.getElementById("sprite");
+
+    let firstRender = true;
+
+    const pacmanWidth = 16;
+    const pacmanHeight = 16;
+
+    let pacmanX = canvas.width / 2;
+    let pacmanY = canvas.height / 2;
+
+    let rightPressed = false;
+    let leftPressed = false;
+    let upPressed = false;
+    let downPressed = false;
+
+    let mouthOpen = true;
+    let lastAnimationTime = 0; // Variable to track the time of the last animation
+
+    const animationDelay = 200;
+
+    function drawPacmanOpenRight() {
+      ctx.drawImage(
+        $sprite,
+        680 - 224,
+        0,
+        pacmanWidth,
+        pacmanHeight,
+        pacmanX,
+        pacmanY,
+        pacmanWidth,
+        pacmanHeight
+      );
+    }
+
+    function drawPacmanClosedRight() {
+      ctx.drawImage(
+        $sprite,
+        680 - 208,
+        0,
+        pacmanWidth,
+        pacmanHeight,
+        pacmanX,
+        pacmanY,
+        pacmanWidth,
+        pacmanHeight
+      );
+    }
+
+    function drawPacmanOpenLeft() {
+      ctx.drawImage(
+        $sprite,
+        680 - 208,
+        16,
+        pacmanWidth,
+        pacmanHeight,
+        pacmanX,
+        pacmanY,
+        pacmanWidth,
+        pacmanHeight
+      );
+    }
+
+    function drawPacmanClosedLeft() {
+      ctx.drawImage(
+        $sprite,
+        680 - 224,
+        16,
+        pacmanWidth,
+        pacmanHeight,
+        pacmanX,
+        pacmanY,
+        pacmanWidth,
+        pacmanHeight
+      );
+    }
+
+    function drawPacmanOpenUp() {
+      ctx.drawImage(
+        $sprite,
+        680 - 224,
+        32,
+        pacmanWidth,
+        pacmanHeight,
+        pacmanX,
+        pacmanY,
+        pacmanWidth,
+        pacmanHeight
+      );
+    }
+
+    function drawPacmanClosedUp() {
+      ctx.drawImage(
+        $sprite,
+        680 - 208,
+        32,
+        pacmanWidth,
+        pacmanHeight,
+        pacmanX,
+        pacmanY,
+        pacmanWidth,
+        pacmanHeight
+      );
+    }
+
+    function drawPacmanOpenDown() {
+      ctx.drawImage(
+        $sprite,
+        680 - 224,
+        48,
+        pacmanWidth,
+        pacmanHeight,
+        pacmanX,
+        pacmanY,
+        pacmanWidth,
+        pacmanHeight
+      );
+    }
+
+    function drawPacmanClosedDown() {
+      ctx.drawImage(
+        $sprite,
+        680 - 208,
+        48,
+        pacmanWidth,
+        pacmanHeight,
+        pacmanX,
+        pacmanY,
+        pacmanWidth,
+        pacmanHeight
+      );
+    }
+
+    function pacmanAnimation(currentTime) {
+      if(currentTime - lastAnimationTime > animationDelay) {
+        mouthOpen = !mouthOpen; // Toggle mouth state
+        lastAnimationTime = currentTime;
+      }
+    }
+
+    function pacmanMovement() {
+      if(rightPressed && pacmanX < canvas.width - pacmanWidth) {
+        pacmanX += 1.2;
+      } else if(upPressed && pacmanY > 0) {
+        pacmanY -= 1.2;
+      } else if(downPressed && pacmanY < canvas.height - pacmanHeight) {
+        pacmanY += 1.2;
+      } else if(leftPressed && pacmanX > 0) {
+        pacmanX -= 1.2;
+      }
+    }
+
+    function initEvents() {
+      document.addEventListener('keydown', keyDownHandler)
+
+      function keyDownHandler(event) {
+        const { key } = event
+
+        if(key !== 'Rigth' && key !== 'ArrowRight' && key.toLowerCase() !== 'd'
+        && key !== 'Left' && key !== 'ArrowLeft' && key.toLowerCase() !== 'a'
+        && key !== 'Up' && key !== 'ArrowUp' && key.toLowerCase() !== 'w'
+        && key !== 'Down' && key !== 'ArrowDown' && key.toLowerCase() !== 's') {
+
+          return
+        }
+
+        if(rightPressed || leftPressed || upPressed || downPressed) {
+          rightPressed = false;
+          leftPressed = false;
+          upPressed = false;
+          downPressed = false;
+        }
+
+        if (key === 'Right' || key === 'ArrowRight' || key.toLowerCase() === 'd') {
+          rightPressed = true;
+        } else if (key === 'Left' || key === 'ArrowLeft' || key.toLowerCase() === 'a') {
+          leftPressed = true;
+        } else if(key === 'Up' || key === 'ArrowUp' || key.toLowerCase() === 'w') {
+          upPressed = true;
+        } else if(key === 'Down' || key === 'ArrowDown' || key.toLowerCase() === 's') {
+          downPressed = true;
+        }
+      }
+    }
+
+    function draw() {
+      window.requestAnimationFrame(draw);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const currentTime = performance.now();
+      pacmanAnimation(currentTime);
+
+      if(firstRender) {
+        drawPacmanOpenRight();
+        firstRender = false;
+      }
+
+      // Draw Pacman based on mouth state
+      if (mouthOpen && rightPressed) {
+        drawPacmanOpenRight();
+      } else if(rightPressed) {
+        drawPacmanClosedRight();
+      }
+
+      if (mouthOpen && leftPressed) {
+        drawPacmanOpenLeft();
+      } else if(leftPressed) {
+        drawPacmanClosedLeft();
+      }
+
+      if (mouthOpen && upPressed) {
+        drawPacmanOpenUp();
+      } else if(upPressed) {
+        drawPacmanClosedUp();
+      }
+
+      if (mouthOpen && downPressed) {
+        drawPacmanOpenDown();
+      } else if(downPressed) {
+        drawPacmanClosedDown();
+      }
+
+      pacmanMovement();
+    }
+
+    draw();
+    initEvents();
+  </script>
+</body>
+</html>
