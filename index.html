@@ -6,7 +6,7 @@
   <title>PacMan</title>
 </head>
 <body>
-  <canvas></canvas>
+  <canvas width="500" height="600"></canvas>
   <img hidden id="sprite" src="./Pacman Sprite.png" alt="Pacman Sprite">
   <style>
     body {
@@ -14,10 +14,8 @@
     }
 
     canvas {
-      border: 6px solid #fff;
       margin: 0 auto;
       display: block;
-      box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.4)
     }
   </style>
   <script>
@@ -25,13 +23,48 @@
     const ctx = canvas.getContext("2d");
     const $sprite = document.getElementById("sprite");
 
-    let firstRender = true;
+    const pacmanMap = [
+  "############################",
+  "#............##............#",
+  "#.####.#####.##.#####.####.#",
+  "#o####.#####.##.#####.####o#",
+  "#.####.#####.##.#####.####.#",
+  "#..........................#",
+  "#.####.##.########.##.####.#",
+  "#.####.##.########.##.####.#",
+  "#......##....##....##......#",
+  "######.##### ## #####.######",
+  "     #.##### ## #####.#     ",
+  "     #.##          ##.#     ",
+  "     #.## ###--### ##.#     ",
+  "######.## #      # ##.######",
+  "      .   #      #   .      ",
+  "######.## #      # ##.######",
+  "     #.## ######## ##.#     ",
+  "     #.##          ##.#     ",
+  "     #.## ######## ##.#     ",
+  "######.## ######## ##.######",
+  "#............##............#",
+  "#.####.#####.##.#####.####.#",
+  "#.####.#####.##.#####.####.#",
+  "#o..##.......  .......##..o#",
+  "###.##.##.########.##.##.###",
+  "###.##.##.########.##.##.###",
+  "#......##....##....##......#",
+  "#.##########.##.##########.#",
+  "#.##########.##.##########.#",
+  "#..........................#",
+  "############################"
+].map(row => row.split(''));
 
-    const pacmanWidth = 16;
-    const pacmanHeight = 16;
+    const pacmanWidth = 15;
+    const pacmanHeight = 15;
 
-    let pacmanX = canvas.width / 2;
-    let pacmanY = canvas.height / 2;
+    const wallWidth = 18;
+    const wallHeight = 18;
+
+    let pacmanX = 165;
+    let pacmanY = 468;
 
     let rightPressed = false;
     let leftPressed = false;
@@ -155,6 +188,47 @@
       );
     }
 
+    function drawMap() {
+      for(let i = 0; i < pacmanMap.length; i++) {
+        for(let j = 0; j < pacmanMap[i].length; j++) {
+          const xPos = j * wallWidth;
+          const yPos = i * wallHeight;
+
+          if(pacmanMap[i][j] === "#") {
+            drawWall(xPos, yPos, "blue")
+          } else if(pacmanMap[i][j] === ".") {
+            
+          } else if(pacmanMap[i][j] === "o") {
+            
+          } else if(pacmanMap[i][j] === "-") {
+            drawWall(xPos, yPos, "gray")
+          }
+        }
+      }
+    }
+
+    function drawWall(xPos, yPos, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(xPos, yPos, wallWidth, wallHeight)
+    }
+
+    function drawPath(xPos, yPos) {
+      ctx.beginPath();
+      ctx.fillStyle = "yellow";
+      ctx.arc(xPos + wallWidth / 2, yPos + wallHeight / 2, 2, 0, 2 * Math.PI, false);
+      ctx.fill()
+      ctx.closePath()
+    }
+
+    function drawEat(xPos, yPos) {
+      ctx.beginPath();
+      ctx.fillStyle = "yellow";
+      ctx.arc(xPos + wallWidth / 2, yPos + wallHeight / 2, 4, 0, 2 * Math.PI, false);
+      ctx.fill()
+      ctx.closePath()
+    }
+
+
     function pacmanAnimation(currentTime) {
       if(currentTime - lastAnimationTime > animationDelay) {
         mouthOpen = !mouthOpen; // Toggle mouth state
@@ -163,14 +237,75 @@
     }
 
     function pacmanMovement() {
-      if(rightPressed && pacmanX < canvas.width - pacmanWidth) {
-        pacmanX += 1.2;
-      } else if(upPressed && pacmanY > 0) {
-        pacmanY -= 1.2;
-      } else if(downPressed && pacmanY < canvas.height - pacmanHeight) {
-        pacmanY += 1.2;
-      } else if(leftPressed && pacmanX > 0) {
-        pacmanX -= 1.2;
+      let collision = false;
+
+      for (let i = 0; i < pacmanMap.length; i++) {
+        for (let j = 0; j < pacmanMap[i].length; j++) {
+          const xPos = j * wallWidth;
+          const yPos = i * wallHeight;
+
+          if (pacmanMap[i][j] === "#") {
+            const wallLeft = xPos;
+            const wallRight = xPos + wallWidth;
+            const wallTop = yPos;
+            const wallBottom = yPos + wallHeight;
+
+            // Calculate the bounding box of Pacman
+            const pacmanLeft = pacmanX;
+            const pacmanRight = pacmanX + pacmanWidth;
+            const pacmanTop = pacmanY;
+            const pacmanBottom = pacmanY + pacmanHeight;
+
+            if (
+              pacmanRight > wallLeft &&
+              pacmanLeft < wallRight &&
+              pacmanBottom > wallTop &&
+              pacmanTop < wallBottom
+            ) {
+              console.log("collide");
+              collision = true;
+              break;
+            }
+          }
+        }
+        if (collision) break;
+      }
+
+      if (collision) {
+        // Move Pacman away from the wall based on his current direction
+        if (rightPressed && pacmanX < canvas.width - pacmanWidth) {
+          pacmanX -= 2;
+          pacmanX += 0;
+          pacmanY += 0;
+          rightPressed = false;
+        } else if (upPressed && pacmanY > 0) {
+          pacmanY += 2;
+          pacmanX += 0;
+          pacmanY += 0;
+          upPressed = false;
+        } else if (downPressed && pacmanY < canvas.height - pacmanHeight) {
+          pacmanY -= 2;
+          pacmanX += 0;
+          pacmanY += 0;
+          downPressed = false;
+        } else if (leftPressed && pacmanX > 0) {
+          pacmanX += 2;
+          pacmanX += 0;
+          pacmanY += 0;
+          leftPressed = false;
+        }
+
+        return;
+      } 
+
+      if (rightPressed && pacmanX < canvas.width - pacmanWidth) {
+        pacmanX += 2;
+      } else if (upPressed && pacmanY > 0) {
+        pacmanY -= 2;
+      } else if (downPressed && pacmanY < canvas.height - pacmanHeight) {
+        pacmanY += 2;
+      } else if (leftPressed && pacmanX > 0) {
+        pacmanX -= 2;
       }
     }
 
@@ -210,13 +345,15 @@
     function draw() {
       window.requestAnimationFrame(draw);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawMap()
 
       const currentTime = performance.now();
       pacmanAnimation(currentTime);
 
-      if(firstRender) {
-        drawPacmanOpenRight();
-        firstRender = false;
+      if(!rightPressed && !leftPressed && !upPressed
+        && !downPressed
+      ) {
+        drawPacmanClosedRight();
       }
 
       // Draw Pacman based on mouth state
@@ -243,7 +380,7 @@
       } else if(downPressed) {
         drawPacmanClosedDown();
       }
-
+      
       pacmanMovement();
     }
 
